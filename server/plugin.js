@@ -131,11 +131,6 @@ export default async (app, _options) => {
   setUpViews(app);
   setUpStaticAssets(app);
   addRoutes(app);
-  if (process.env.BUGSINK_TEST_ENABLED === 'true') {
-    app.get('/debug-bugsink', async () => {
-      throw new Error('Paso 9: captura de Fastify desde Render');
-    });
-  }
   addHooks(app);
 
   return app;
