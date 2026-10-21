@@ -1,6 +1,7 @@
 // @ts-check
 
 import i18next from "i18next";
+import { ValidationError } from "objection";
 
 export default (app) => {
   app
@@ -148,7 +149,12 @@ export default (app) => {
 
         req.flash("info", i18next.t("flash.tasks.update.success"));
         reply.redirect(app.reverse("tasks"));
-      } catch ({ data }) {
+      } catch (error) {
+        if (!(error instanceof ValidationError)) {
+          throw error;
+        }
+
+        const { data } = error;
         req.flash("error", i18next.t("flash.tasks.update.error"));
 
         const statuses = await app.objection.models.taskStatus.query();
@@ -184,7 +190,10 @@ export default (app) => {
         return reply;
       }
 
-      await task.$query().delete();
+      await app.objection.models.task.transaction(async (trx) => {
+        await task.$relatedQuery("labels", trx).unrelate();
+        await task.$query(trx).delete();
+      });
 
       req.flash("info", i18next.t("flash.tasks.delete.success"));
       reply.redirect(app.reverse("tasks"));
@@ -224,6 +233,10 @@ export default (app) => {
         req.flash("info", i18next.t("flash.tasks.create.success"));
         reply.redirect(app.reverse("tasks"));
       } catch (error) {
+        if (!(error instanceof ValidationError)) {
+          throw error;
+        }
+
         const errors = error.data;
 
         req.flash("error", i18next.t("flash.tasks.create.error"));

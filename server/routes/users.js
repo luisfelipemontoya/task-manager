@@ -1,6 +1,7 @@
 // @ts-check
 
 import i18next from "i18next";
+import { ValidationError } from "objection";
 
 export default (app) => {
   app
@@ -54,7 +55,12 @@ export default (app) => {
 
         req.flash("info", i18next.t("flash.users.update.success"));
         reply.redirect(app.reverse("users"));
-      } catch ({ data }) {
+      } catch (error) {
+        if (!(error instanceof ValidationError)) {
+          throw error;
+        }
+
+        const { data } = error;
         req.flash("error", i18next.t("flash.users.update.error"));
 
         const header = i18next.t("views.users.edit.edit");
@@ -108,7 +114,12 @@ export default (app) => {
         await app.objection.models.user.query().insert(validUser);
         req.flash("info", i18next.t("flash.users.create.success"));
         reply.redirect(app.reverse("root"));
-      } catch ({ data }) {
+      } catch (error) {
+        if (!(error instanceof ValidationError)) {
+          throw error;
+        }
+
+        const { data } = error;
         req.flash("error", i18next.t("flash.users.create.error"));
 
         const header = i18next.t("views.users.new.signUp");

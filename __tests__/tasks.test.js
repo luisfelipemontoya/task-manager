@@ -374,6 +374,57 @@ describe("test tasks CRUD", () => {
     expect(deletedTask).toBeUndefined();
   });
 
+  it("deletes a labeled task while preserving labels and other associations", async () => {
+    const cookies = await signIn();
+    const creator = await models.user.query().findOne({ email: testData.users.existing.email });
+    const otherTask = await models.task.query().first();
+    const labels = await models.label.query();
+    const task = await models.task.query().insert({
+      name: "Labeled task to delete",
+      statusId: otherTask.statusId,
+      creatorId: creator.id,
+    });
+    for (const label of labels) {
+      await task.$relatedQuery("labels").relate(label.id);
+    }
+    await otherTask.$relatedQuery("labels").relate(labels[0].id);
+    await knex.raw("PRAGMA foreign_keys = ON");
+    try {
+      const response = await app.inject({ method: "DELETE", url: `/tasks/${task.id}`, cookies });
+      expect(response.statusCode).toBe(302);
+      expect(await models.task.query().findById(task.id)).toBeUndefined();
+      expect(await knex("tasks_labels").where({ taskId: task.id })).toHaveLength(0);
+      expect(await models.label.query()).toHaveLength(labels.length);
+      expect(await otherTask.$relatedQuery("labels")).toHaveLength(1);
+    } finally {
+      await knex.raw("PRAGMA foreign_keys = OFF");
+    }
+  });
+
+  it("restores label associations if task deletion fails", async () => {
+    const cookies = await signIn();
+    const creator = await models.user.query().findOne({ email: testData.users.existing.email });
+    const otherTask = await models.task.query().first();
+    const label = await models.label.query().first();
+    const task = await models.task.query().insert({
+      name: "Task whose deletion fails",
+      statusId: otherTask.statusId,
+      creatorId: creator.id,
+    });
+    await task.$relatedQuery("labels").relate(label.id);
+    await knex.raw(
+      "CREATE TRIGGER reject_task_delete BEFORE DELETE ON tasks BEGIN SELECT RAISE(ABORT, 'Deletion failed'); END",
+    );
+    try {
+      const response = await app.inject({ method: "DELETE", url: `/tasks/${task.id}`, cookies });
+      expect(response.statusCode).toBe(500);
+      expect(await models.task.query().findById(task.id)).toBeDefined();
+      expect(await task.$relatedQuery("labels")).toHaveLength(1);
+    } finally {
+      await knex.raw("DROP TRIGGER reject_task_delete");
+    }
+  });
+
   it("non-creator cannot delete task", async () => {
     const cookies = await signIn();
     const task = await models.task.query().first();

@@ -1,6 +1,7 @@
 // @ts-check
 
 import i18next from "i18next";
+import { ValidationError } from "objection";
 
 export default (app) => {
   app
@@ -57,7 +58,12 @@ export default (app) => {
 
         req.flash("info", i18next.t("flash.labels.update.success"));
         reply.redirect(app.reverse("labels"));
-      } catch ({ data }) {
+      } catch (error) {
+        if (!(error instanceof ValidationError)) {
+          throw error;
+        }
+
+        const { data } = error;
         req.flash("error", i18next.t("flash.labels.update.error"));
 
         label.$set(req.body.data);
@@ -116,7 +122,12 @@ export default (app) => {
 
         req.flash("info", i18next.t("flash.labels.create.success"));
         reply.redirect(app.reverse("labels"));
-      } catch ({ data }) {
+      } catch (error) {
+        if (!(error instanceof ValidationError)) {
+          throw error;
+        }
+
+        const { data } = error;
         req.flash("error", i18next.t("flash.labels.create.error"));
 
         const header = i18next.t("views.labels.new.header");
