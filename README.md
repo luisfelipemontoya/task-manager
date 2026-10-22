@@ -1,124 +1,125 @@
-# Gestor de tareas
+# Task Manager
 
-[![hexlet-check](https://github.com/luisfelipemontoya/fullstack-javascript-project-141/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/luisfelipemontoya/fullstack-javascript-project-141/actions)
+[![hexlet-check](https://github.com/luisfelipemontoya/task-manager/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/luisfelipemontoya/task-manager/actions)
 
-Aplicación web para crear, organizar y dar seguimiento a tareas. Permite asignar estados, ejecutores y etiquetas, y filtrar el listado por esos criterios o por las tareas creadas por el usuario actual.
+A web application for creating, organizing, and tracking tasks. Assign statuses, assignees, and labels, then filter tasks by these criteria or by the current user as their creator.
 
-Proyecto de aprendizaje del [programa Fullstack JavaScript de Códica](https://app.codica.la/programs/fullstack-javascript), basado en la plantilla [fastify-nodejs-application](https://github.com/hexlet-boilerplates/fastify-nodejs-application).
-
-[Referencia del proyecto de demostración](https://files.hexlet.app/a/s44d43).
+Built as a learning project for the [Códica Fullstack JavaScript program](https://app.codica.la/programs/fullstack-javascript), using the [fastify-nodejs-application](https://github.com/hexlet-boilerplates/fastify-nodejs-application) boilerplate.
 
 ## Demo
 
-[Ver aplicación en vivo](https://fullstack-javascript-project-141-093s.onrender.com)
+[Open the live application](https://fullstack-javascript-project-141-093s.onrender.com)
 
-## Funcionalidades
+The application interface is currently in Spanish.
 
-- Registro, inicio y cierre de sesión.
-- Creación, edición y eliminación de usuarios, estados, etiquetas y tareas.
-- Asignación de ejecutor y múltiples etiquetas a cada tarea.
-- Filtros por estado, ejecutor, etiqueta y autor actual.
-- Eliminación de tareas restringida a su autor.
-- Protección frente a la eliminación de usuarios, estados o etiquetas vinculados a tareas.
-- Captura de errores con Bugsink mediante el SDK de Sentry.
+## Features
 
-## Stack
+- User registration, sign-in, and sign-out.
+- Create, view, update, and delete users, statuses, labels, and tasks.
+- Assign a status, an optional assignee, and multiple labels to each task.
+- Filter tasks by status, assignee, label, or the current user as creator.
+- Restrict task deletion to the task creator.
+- Delete tasks and their label associations in a transaction while preserving labels.
+- Prevent deletion of users, statuses, or labels that are linked to tasks.
+- Report unexpected errors to Bugsink through the Sentry SDK while keeping validation errors in forms.
 
-- JavaScript con módulos ES y Node.js.
-- Fastify y Pug para el servidor y las vistas.
-- Objection.js y Knex para modelos, consultas y migraciones.
-- SQLite en desarrollo y pruebas; PostgreSQL en producción.
-- Bootstrap y Webpack para estilos y recursos del frontend.
-- Passport y sesiones seguras para autenticación.
-- dotenv para configuración e i18next para traducciones.
-- Jest para pruebas; Biome para lint y Oxfmt para formato.
-- GitHub Actions para autoverificación y Render para despliegue.
+## Tech stack
 
-## Instalación
+- JavaScript ES modules and Node.js.
+- Fastify and Pug for the server and views.
+- Objection.js and Knex for models, database queries, and migrations.
+- SQLite for development and tests; PostgreSQL for production.
+- Bootstrap and Webpack for frontend assets.
+- Passport and secure sessions for authentication.
+- dotenv for configuration and i18next for translations.
+- Jest for tests, Biome for linting, and Oxfmt for formatting.
+- GitHub Actions for automated checks and Render for deployment.
 
-Requisitos: Git, Node.js 22.x y npm. Los siguientes comandos están pensados para Linux o WSL.
+## Installation
+
+Requirements: Git, Node.js 22.x, and npm. The commands below target Linux or WSL.
 
 ```bash
-git clone https://github.com/luisfelipemontoya/fullstack-javascript-project-141.git
-cd fullstack-javascript-project-141
+git clone https://github.com/luisfelipemontoya/task-manager.git
+cd task-manager
 npm ci
 cp .env.example .env
 ```
 
-Configura las variables en `.env`:
+Configure the following environment variables in `.env`:
 
-| Variable | Uso |
+| Variable | Purpose |
 |---|---|
-| `SESSION_KEY` | Secreto de sesión. Sustituye el valor de ejemplo por uno propio. |
-| `SENTRY_DSN` | DSN del proyecto de Bugsink. Puede quedar vacío si no deseas activar el monitoreo local. |
-| `NODE_ENV` | Entorno: `development`, `test` o `production`. Por defecto se usa desarrollo. |
-| `DATABASE_URL` | Conexión a PostgreSQL, necesaria en producción. |
+| `SESSION_KEY` | Session secret. Replace the example value with your own. |
+| `SENTRY_DSN` | Bugsink project DSN. Leave empty to disable local error monitoring. |
+| `NODE_ENV` | Environment: `development`, `test`, or `production`. Defaults to `development`. |
+| `DATABASE_URL` | PostgreSQL connection URL, required in production. |
 
-Para generar tu propio `SESSION_KEY`:
+Generate a session secret:
 
 ```bash
 node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
 ```
 
-Copia el resultado en `.env`. Este archivo está excluido del repositorio; en Render, configura los secretos mediante variables de entorno.
+Copy the result into `.env`. This file is excluded from version control. Configure production secrets through Render's environment variables.
 
-## Uso
+## Running locally
 
-Compila los recursos e inicia el servidor:
+Build frontend assets and start the server:
 
 ```bash
 npm run build
 npm start
 ```
 
-Abre [http://localhost:3000](http://localhost:3000). El comando de inicio aplica automáticamente las migraciones pendientes. En desarrollo, los datos se guardan en `database.sqlite`.
+Open [http://localhost:3000](http://localhost:3000). The start command applies pending database migrations automatically. Development data is stored in `database.sqlite`.
 
-Registra una cuenta e inicia sesión. Crea estados y etiquetas, añade tareas y asigna su ejecutor. Desde el listado de tareas puedes combinar los filtros y activar **Solo mis tareas** para ver las que creaste.
+Register an account and sign in. Create statuses and labels, then add tasks and choose their assignees. Combine filters on the task list, or select **Solo mis tareas** to show tasks you created.
 
-Para recompilar los recursos mientras trabajas en el frontend, ejecuta en otra terminal:
+To rebuild frontend assets as you work, run this in a separate terminal:
 
 ```bash
 npx webpack --watch
 ```
 
-## Verificaciones
+## Checks
 
-Ejecutar las pruebas locales con la configuración de pruebas:
+Run tests with the test database configuration:
 
 ```bash
 NODE_ENV=test npm test
 ```
 
-Revisar reglas de código y formato:
+Check code and formatting:
 
 ```bash
 npm run lint
 ```
 
-Aplicar las correcciones automáticas y el formato:
+Apply automatic lint and formatting fixes:
 
 ```bash
 npm run lint:fix
 ```
 
-Comprobar la compilación:
+Check the production asset build:
 
 ```bash
 npm run build
 ```
 
-## Producción y monitoreo
+## Deployment and monitoring
 
-La aplicación está desplegada en Render y utiliza PostgreSQL. La configuración de producción requiere `NODE_ENV=production`, `DATABASE_URL` y `SESSION_KEY`. Para enviar errores a Bugsink, configura también `SENTRY_DSN`.
+The application is deployed on Render with PostgreSQL. Production requires `NODE_ENV=production`, `DATABASE_URL`, and `SESSION_KEY`. Set `SENTRY_DSN` to enable error reporting to Bugsink.
 
-El archivo `instrument.js` inicializa el SDK de Sentry antes de cargar el servidor. El monitoreo se activa cuando hay un DSN configurado y el entorno no es `test`.
+The `instrument.js` file initializes the Sentry SDK before the server loads. Monitoring is enabled when a DSN is configured and the environment is not `test`.
 
-## Pruebas automáticas de Códica
+## Automated project checks
 
-El workflow `.github/workflows/hexlet-check.yml` ejecuta la autoverificación de Hexlet en GitHub Actions. Incluye pruebas del comportamiento de la aplicación y controles de código y formato. La insignia al inicio de este documento muestra el resultado de la ejecución más reciente.
+The `.github/workflows/hexlet-check.yml` workflow runs Hexlet project checks through GitHub Actions. The badge at the top of this README links to workflow results.
 
-Conserva el workflow y el nombre del repositorio para mantener la integración con la plataforma.
+This project was completed and approved as part of the Códica program. Keep the supplied workflow intact if continuing to use the academic checks.
 
-## Acerca de Códica
+## Acknowledgments
 
-[Códica](https://app.codica.la/) es una escuela de programación con programas de aprendizaje, práctica, apoyo de mentores y proyectos reales. Este repositorio forma parte de ese proceso de aprendizaje.
+[Códica](https://app.codica.la/) provides programming education through guided practice, mentor feedback, and real projects. This application was developed as part of that learning process.
